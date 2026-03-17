@@ -1,12 +1,10 @@
-'use client';
-
 import type * as React from 'react';
 
 import { mergeProps } from '@base-ui/react/merge-props';
 import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { useRender } from '@base-ui/react/use-render';
+import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { ChevronDownIcon, ChevronsUpDownIcon, ChevronUpIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -51,7 +49,7 @@ export function SelectButton({
         <span className='flex-1 truncate in-data-placeholder:text-muted-foreground/72'>
           {children}
         </span>
-        <ChevronsUpDownIcon className={selectTriggerIconClassName} />
+        <ChevronUpDownIcon className={selectTriggerIconClassName} />
       </>
     ),
     className: cn(selectTriggerVariants({ size }), 'min-w-0', className),
@@ -80,7 +78,7 @@ export function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon data-slot='select-icon'>
-        <ChevronsUpDownIcon className={selectTriggerIconClassName} />
+        <ChevronUpDownIcon className={selectTriggerIconClassName} />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );

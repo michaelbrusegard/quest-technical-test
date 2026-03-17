@@ -1,9 +1,7 @@
-'use client';
-
 import type React from 'react';
 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
-import { XIcon } from 'lucide-react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -91,7 +89,7 @@ export function DialogPopup({
               render={<Button size='icon' variant='ghost' />}
               {...closeProps}
             >
-              <XIcon />
+              <XMarkIcon />
             </DialogPrimitive.Close>
           )}
         </DialogPrimitive.Popup>

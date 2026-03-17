@@ -1,5 +1,3 @@
-'use client';
-
 import type React from 'react';
 
 import { Checkbox as CheckboxPrimitive } from '@base-ui/react/checkbox';

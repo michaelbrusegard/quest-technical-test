@@ -1,5 +1,3 @@
-'use client';
-
 import type React from 'react';
 
 import { Form as FormPrimitive } from '@base-ui/react/form';

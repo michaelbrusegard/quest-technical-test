@@ -1,9 +1,7 @@
-'use client';
-
 import type * as React from 'react';
 
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
-import { ChevronRightIcon } from 'lucide-react';
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
 
 import { cn } from '@/lib/utils';
 

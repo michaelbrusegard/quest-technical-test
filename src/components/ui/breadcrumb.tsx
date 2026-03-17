@@ -1,10 +1,8 @@
-'use client';
-
 import type * as React from 'react';
 
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
-import { ChevronRight, MoreHorizontal } from 'lucide-react';
+import { ChevronRightIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 import { cn } from '@/lib/utils';
 
@@ -85,7 +83,7 @@ export function BreadcrumbSeparator({
       role='presentation'
       {...props}
     >
-      {children ?? <ChevronRight />}
+      {children ?? <ChevronRightIcon />}
     </li>
   );
 }
@@ -102,7 +100,7 @@ export function BreadcrumbEllipsis({
       role='presentation'
       {...props}
     >
-      <MoreHorizontal className='size-4' />
+      <EllipsisHorizontalIcon className='size-4' />
       <span className='sr-only'>More</span>
     </span>
   );

@@ -1,5 +1,3 @@
-'use client';
-
 import type React from 'react';
 
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';

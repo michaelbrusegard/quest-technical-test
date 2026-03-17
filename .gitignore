@@ -2,6 +2,9 @@
 .DS_Store
 .direnv
 
+# env
+.env
+
 # dependencies
 /node_modules
 
