@@ -32,6 +32,7 @@ import {
 import { MarkdownText } from '@/components/assistant-ui/markdown-text';
 import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
+import { useBrowserHistorySync } from '@/components/chat-runtime-provider';
 import { Button } from '@/components/ui/button';
 import { ScrollAreaPrimitive, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -108,10 +109,28 @@ function ThreadWelcome() {
           <p className='aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xl delay-75 duration-200'>
             How can I help you today?
           </p>
+          <BrowserHistoryStatus />
         </div>
       </div>
       <ThreadSuggestions />
     </div>
+  );
+}
+
+function BrowserHistoryStatus() {
+  const { historyState, historySyncError, isHistorySyncing } = useBrowserHistorySync();
+  const sourceCount = historyState.sources.length;
+
+  return (
+    <p className='mt-3 text-muted-foreground text-sm'>
+      {historySyncError
+        ? `Browser history sync failed: ${historySyncError}`
+        : isHistorySyncing
+          ? 'Syncing your local browser history...'
+          : sourceCount > 0
+            ? `Connected to ${sourceCount} browser profile${sourceCount === 1 ? '' : 's'} with ${historyState.records.length} imported visits.`
+            : 'No supported browser profiles detected yet.'}
+    </p>
   );
 }
 
@@ -165,7 +184,10 @@ function Composer() {
 function ComposerAction() {
   return (
     <div className='aui-composer-action-wrapper relative flex items-center justify-between'>
-      <ComposerAddAttachment />
+      <div className='flex items-center gap-2'>
+        <ComposerAddAttachment />
+        <BrowserHistoryRefreshButton />
+      </div>
       <AuiIf condition={(s) => !s.thread.isRunning}>
         <ComposerPrimitive.Send asChild>
           <TooltipIconButton
@@ -195,6 +217,25 @@ function ComposerAction() {
         </ComposerPrimitive.Cancel>
       </AuiIf>
     </div>
+  );
+}
+
+function BrowserHistoryRefreshButton() {
+  const { isHistorySyncing, refreshHistory } = useBrowserHistorySync();
+
+  return (
+    <TooltipIconButton
+      tooltip='Refresh browser history'
+      type='button'
+      variant='ghost'
+      onClick={() => {
+        void refreshHistory();
+      }}
+      disabled={isHistorySyncing}
+      aria-label='Refresh browser history'
+    >
+      <ArrowPathIcon className={cn(isHistorySyncing && 'animate-spin')} />
+    </TooltipIconButton>
   );
 }
 

@@ -6,7 +6,7 @@ export const Route = createRootRoute({
   component: () => (
     <>
       <Header />
-      <main className='pt-8 size-full'>
+      <main className='size-full pt-8'>
         <Outlet />
       </main>
     </>

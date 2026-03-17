@@ -29,7 +29,7 @@ function WindowButton({
       tabIndex={-1}
       onClick={onClick}
       className={cn(
-        'relative flex h-3 w-3 cursor-pointer items-center justify-center rounded-full outline-none transition-colors',
+        'relative flex h-3 w-3 cursor-pointer items-center justify-center rounded-full transition-colors outline-none',
         isFocused ? focusedColor : 'bg-border group-hover:' + hoverColor,
       )}
       aria-label={ariaLabel}
@@ -60,7 +60,7 @@ function FullscreenIcon({ isFullscreen, isFocused }: FullscreenIconProps) {
         />
         <span
           className={cn(
-            'absolute inset-0 m-auto h-0 w-0 translate-x-[2.25px] translate-y-[2.25px] rounded-[1px] border-r-[4.5px] border-t-[4.5px] border-r-transparent transition-colors',
+            'absolute inset-0 m-auto h-0 w-0 translate-x-[2.25px] translate-y-[2.25px] rounded-[1px] border-t-[4.5px] border-r-[4.5px] border-r-transparent transition-colors',
             isFocused
               ? 'border-t-[#036200]'
               : 'border-t-transparent group-hover:border-t-[#036200]',
@@ -201,19 +201,19 @@ export function Header() {
   return (
     <header
       className={cn(
-        'h-8 w-full border-b border-border bg-background select-none fixed z-100 transition-opacity',
-        isFullscreen ? 'opacity-0 hover:opacity-100' : 'opacity-100 rounded-t-2xl',
+        'border-border bg-background fixed z-100 h-8 w-full border-b transition-opacity select-none',
+        isFullscreen ? 'opacity-0 hover:opacity-100' : 'rounded-t-2xl opacity-100',
       )}
     >
       <div
         className={cn(
-          'relative size-full flex items-center justify-between bg-muted/30 px-3',
+          'bg-muted/30 relative flex size-full items-center justify-between px-3',
           !isFullscreen && 'rounded-t-2xl',
         )}
       >
-        <div data-tauri-drag-region className='absolute inset-y-0 left-24 right-0' />
+        <div data-tauri-drag-region className='absolute inset-y-0 right-0 left-24' />
 
-        <div className='flex items-center gap-4 relative z-10'>
+        <div className='relative z-10 flex items-center gap-4'>
           <WindowControls
             isFocused={isFocused}
             isFullscreen={isFullscreen}
@@ -224,7 +224,7 @@ export function Header() {
           <SettingsDialog />
         </div>
 
-        <span className='pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 text-sm font-medium text-foreground font-heading'>
+        <span className='text-foreground font-heading pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 text-sm font-medium'>
           Quest
         </span>
 

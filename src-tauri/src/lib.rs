@@ -1,3 +1,5 @@
+mod history;
+
 use tauri::Manager;
 
 #[tauri::command]
@@ -26,7 +28,11 @@ pub fn run() {
                 .plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            history::commands::list_browser_sources,
+            history::commands::fetch_browser_history
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
