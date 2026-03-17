@@ -27,51 +27,51 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger
-        className='relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-md outline-none transition-colors hover:bg-muted/50'
+        className='hover:bg-muted/50 relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition-colors outline-none'
         aria-label='Settings'
       >
-        <Cog8ToothIcon className='size-4 text-muted-foreground transition-colors hover:text-foreground' />
+        <Cog8ToothIcon className='text-muted-foreground hover:text-foreground size-4 transition-colors' />
       </DialogTrigger>
 
-      <DialogContent className='sm:max-w-4xl p-0 overflow-hidden h-full max-h-[100dvh] sm:h-[600px] flex sm:max-h-[85vh]'>
+      <DialogContent className='flex h-full max-h-[100dvh] overflow-hidden p-0 sm:h-[600px] sm:max-h-[85vh] sm:max-w-4xl'>
         <Tabs
           defaultValue='api-keys'
-          className='flex-1 w-full h-full gap-0 flex flex-col sm:flex-row'
+          className='flex h-full w-full flex-1 flex-col gap-0 sm:flex-row'
         >
           {/* Sidebar */}
-          <div className='w-full sm:w-[240px] border-b sm:border-b-0 sm:border-r bg-muted/30 flex flex-col pt-4 sm:pt-6 pb-2 sm:pb-4 shrink-0'>
-            <div className='hidden sm:block px-4 mb-2'>
-              <span className='text-xs font-semibold text-muted-foreground'>General</span>
+          <div className='bg-muted/30 flex w-full shrink-0 flex-col border-b pt-4 pb-2 sm:w-[240px] sm:border-r sm:border-b-0 sm:pt-6 sm:pb-4'>
+            <div className='mb-2 hidden px-4 sm:block'>
+              <span className='text-muted-foreground text-xs font-semibold'>General</span>
             </div>
 
-            <TabsList className='flex-row sm:flex-col h-auto w-full items-stretch justify-start sm:justify-start bg-transparent p-2 gap-1 sm:gap-0.5 overflow-x-auto overflow-y-hidden'>
+            <TabsList className='h-auto w-full flex-row items-stretch justify-start gap-1 overflow-x-auto overflow-y-hidden bg-transparent p-2 sm:flex-col sm:justify-start sm:gap-0.5'>
               <TabsTrigger
                 value='api-keys'
-                className='justify-center sm:justify-start gap-2 sm:gap-3 px-3 py-2 data-[state=active]:bg-muted data-[state=active]:shadow-none shrink-0 sm:w-full'
+                className='data-[state=active]:bg-muted shrink-0 justify-center gap-2 px-3 py-2 data-[state=active]:shadow-none sm:w-full sm:justify-start sm:gap-3'
               >
                 <KeyIcon className='size-4' />
                 API Keys
               </TabsTrigger>
               <TabsTrigger
                 value='memory-settings'
-                className='justify-center sm:justify-start gap-2 sm:gap-3 px-3 py-2 data-[state=active]:bg-muted data-[state=active]:shadow-none shrink-0 sm:w-full'
+                className='data-[state=active]:bg-muted shrink-0 justify-center gap-2 px-3 py-2 data-[state=active]:shadow-none sm:w-full sm:justify-start sm:gap-3'
               >
                 <CpuChipIcon className='size-4' />
                 Memory Settings
               </TabsTrigger>
             </TabsList>
 
-            <div className='hidden sm:block mt-auto px-5 pb-2'>
+            <div className='mt-auto hidden px-5 pb-2 sm:block'>
               <div className='text-sm font-medium'>Quest Desktop</div>
-              <div className='text-xs text-muted-foreground mt-0.5'>v{appVersion}</div>
+              <div className='text-muted-foreground mt-0.5 text-xs'>v{appVersion}</div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className='flex-1 overflow-y-auto bg-background p-6 sm:p-8 relative'>
+          <div className='bg-background relative flex-1 overflow-y-auto p-6 sm:p-8'>
             <TabsContent value='api-keys' className='m-0 mt-0 h-full'>
               <div className='max-w-2xl'>
-                <h2 className='text-xl font-medium mb-6 sm:mb-8'>API Keys</h2>
+                <h2 className='mb-6 text-xl font-medium sm:mb-8'>API Keys</h2>
 
                 {isLoading ? (
                   <div className='space-y-4'>
@@ -80,14 +80,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     <Skeleton className='h-[72px] w-full rounded-xl' />
                   </div>
                 ) : (
-                  <div className='rounded-xl border bg-card/50 shadow-sm divide-y'>
+                  <div className='bg-card/50 divide-y rounded-xl border shadow-sm'>
                     {/* OpenAI */}
-                    <div className='p-4 flex flex-col gap-3'>
+                    <div className='flex flex-col gap-3 p-4'>
                       <div className='flex flex-col gap-1'>
                         <Label htmlFor='openai-key' className='text-sm font-medium'>
                           OpenAI API Key
                         </Label>
-                        <span className='text-xs text-muted-foreground'>
+                        <span className='text-muted-foreground text-xs'>
                           Required for using OpenAI models like GPT
                         </span>
                       </div>
@@ -102,12 +102,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     </div>
 
                     {/* Anthropic */}
-                    <div className='p-4 flex flex-col gap-3'>
+                    <div className='flex flex-col gap-3 p-4'>
                       <div className='flex flex-col gap-1'>
                         <Label htmlFor='anthropic-key' className='text-sm font-medium'>
                           Anthropic API Key
                         </Label>
-                        <span className='text-xs text-muted-foreground'>
+                        <span className='text-muted-foreground text-xs'>
                           Required for using Anthropic models like Claude Sonnet
                         </span>
                       </div>
@@ -122,12 +122,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     </div>
 
                     {/* Cerebras */}
-                    <div className='p-4 flex flex-col gap-3'>
+                    <div className='flex flex-col gap-3 p-4'>
                       <div className='flex flex-col gap-1'>
                         <Label htmlFor='cerebras-key' className='text-sm font-medium'>
                           Cerebras API Key
                         </Label>
-                        <span className='text-xs text-muted-foreground'>
+                        <span className='text-muted-foreground text-xs'>
                           Required for using Cerebras fast inference models
                         </span>
                       </div>
@@ -147,7 +147,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
             <TabsContent value='memory-settings' className='m-0 mt-0 h-full'>
               <div className='max-w-2xl'>
-                <h2 className='text-xl font-medium mb-6 sm:mb-8'>Memory Settings</h2>
+                <h2 className='mb-6 text-xl font-medium sm:mb-8'>Memory Settings</h2>
                 <div className='text-muted-foreground text-sm'>
                   This section is under construction.
                 </div>
