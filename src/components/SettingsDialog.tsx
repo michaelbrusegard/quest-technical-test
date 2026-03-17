@@ -134,7 +134,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <Input
                         id='cerebras-key'
                         type='password'
-                        placeholder='cb-...'
+                        placeholder='csk-...'
                         className='bg-background'
                         value={keys.cerebras}
                         onChange={(e) => updateKey('cerebras', e.target.value)}
