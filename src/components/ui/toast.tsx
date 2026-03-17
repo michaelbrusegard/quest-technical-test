@@ -228,9 +228,9 @@ export type ToastPosition =
   | 'bottom-center'
   | 'bottom-right';
 
-export interface ToastProviderProps extends Toast.Provider.Props {
+export type ToastProviderProps = {
   position?: ToastPosition;
-}
+} & Toast.Provider.Props;
 
 export function ToastProvider({
   children,

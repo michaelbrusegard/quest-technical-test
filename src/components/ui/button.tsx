@@ -48,11 +48,11 @@ export const buttonVariants = cva(
   },
 );
 
-export interface ButtonProps extends useRender.ComponentProps<'button'> {
+export type ButtonProps = {
   variant?: VariantProps<typeof buttonVariants>['variant'];
   size?: VariantProps<typeof buttonVariants>['size'];
   loading?: boolean;
-}
+} & useRender.ComponentProps<'button'>;
 
 export function Button({
   className,

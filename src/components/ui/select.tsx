@@ -28,9 +28,9 @@ export const selectTriggerVariants = cva(
 
 export const selectTriggerIconClassName = '-me-1 size-4.5 opacity-80 sm:size-4';
 
-export interface SelectButtonProps extends useRender.ComponentProps<'button'> {
+export type SelectButtonProps = {
   size?: VariantProps<typeof selectTriggerVariants>['size'];
-}
+} & useRender.ComponentProps<'button'>;
 
 export function SelectButton({
   className,
