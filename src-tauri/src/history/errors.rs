@@ -1,4 +1,4 @@
-use std::{fmt, io, num::ParseIntError};
+use std::{fmt, io};
 
 #[derive(Debug)]
 pub enum HistoryError {
@@ -39,11 +39,5 @@ impl From<io::Error> for HistoryError {
 impl From<rusqlite::Error> for HistoryError {
     fn from(value: rusqlite::Error) -> Self {
         Self::Sqlite(value)
-    }
-}
-
-impl From<ParseIntError> for HistoryError {
-    fn from(_: ParseIntError) -> Self {
-        Self::InvalidCursor("unknown".to_owned())
     }
 }

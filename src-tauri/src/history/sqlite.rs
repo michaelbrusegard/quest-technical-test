@@ -40,6 +40,9 @@ pub struct CopiedDatabase {
 
 impl Drop for CopiedDatabase {
     fn drop(&mut self) {
+        let placeholder = Connection::open_in_memory().unwrap();
+        let connection = std::mem::replace(&mut self.connection, placeholder);
+        let _ = connection.close();
         let _ = fs::remove_dir_all(&self.temp_dir);
     }
 }

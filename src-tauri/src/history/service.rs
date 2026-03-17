@@ -196,3 +196,7 @@ pub fn now_ms() -> i64 {
         .duration_since(UNIX_EPOCH)
         .map_or(0, |duration| duration.as_millis() as i64)
 }
+
+#[cfg(test)]
+#[path = "service_tests.rs"]
+mod tests;

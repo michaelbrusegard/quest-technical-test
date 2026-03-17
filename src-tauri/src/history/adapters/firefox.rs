@@ -132,11 +132,5 @@ fn firefox_visit_type_label(visit_type: i64) -> &'static str {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::prtime_to_unix_ms;
-
-    #[test]
-    fn converts_prtime_microseconds_to_unix_ms() {
-        assert_eq!(prtime_to_unix_ms(1_000_000), 1_000);
-    }
-}
+#[path = "firefox_tests.rs"]
+mod tests;

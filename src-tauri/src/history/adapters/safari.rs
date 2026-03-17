@@ -109,11 +109,5 @@ fn mac_absolute_time_to_unix_ms(mac_time: f64) -> i64 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::mac_absolute_time_to_unix_ms;
-
-    #[test]
-    fn converts_mac_absolute_time_to_unix_ms() {
-        assert_eq!(mac_absolute_time_to_unix_ms(0.0), 978_307_200_000);
-    }
-}
+#[path = "safari_tests.rs"]
+mod tests;

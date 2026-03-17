@@ -137,11 +137,5 @@ fn transition_core_label(transition: i64) -> &'static str {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::webkit_to_unix_ms;
-
-    #[test]
-    fn converts_webkit_microseconds_to_unix_ms() {
-        assert_eq!(webkit_to_unix_ms(11_644_473_600_000_000), 0);
-    }
-}
+#[path = "chromium_tests.rs"]
+mod tests;

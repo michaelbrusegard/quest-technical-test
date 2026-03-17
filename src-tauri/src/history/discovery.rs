@@ -280,6 +280,10 @@ fn discover_firefox_sources(definition: &BrowserDefinition, root: &Path) -> Vec<
 fn discover_safari_sources(definition: &BrowserDefinition, root: &Path) -> Vec<DiscoveredSource> {
     let database_path = root.join("History.db");
 
+    if !database_path.is_file() {
+        return Vec::new();
+    }
+
     vec![build_source(
         definition.family,
         definition.name,
@@ -492,22 +496,5 @@ fn stable_hash_hex(bytes: &[u8]) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::{slugify, stable_hash_hex};
-
-    #[test]
-    fn stable_hash_stays_deterministic() {
-        assert_eq!(
-            stable_hash_hex(b"/tmp/profile"),
-            stable_hash_hex(b"/tmp/profile")
-        );
-    }
-
-    #[test]
-    fn slugify_normalizes_browser_names() {
-        assert_eq!(
-            slugify("Firefox Developer Edition"),
-            "firefox-developer-edition"
-        );
-    }
-}
+#[path = "discovery_tests.rs"]
+mod tests;
