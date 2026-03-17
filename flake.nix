@@ -34,6 +34,7 @@
         buildInputs = with pkgs; [
           rustToolchain
           bun
+          nodePackages.prettier
         ];
       };
     });
