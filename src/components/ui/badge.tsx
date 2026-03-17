@@ -35,10 +35,10 @@ export const badgeVariants = cva(
   },
 );
 
-export interface BadgeProps extends useRender.ComponentProps<'span'> {
+export type BadgeProps = {
   variant?: VariantProps<typeof badgeVariants>['variant'];
   size?: VariantProps<typeof badgeVariants>['size'];
-}
+} & useRender.ComponentProps<'span'>;
 
 export function Badge({
   className,

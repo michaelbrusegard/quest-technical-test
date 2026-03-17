@@ -34,6 +34,7 @@ import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
 import { useBrowserHistorySync } from '@/components/chat-runtime-provider';
 import { Button } from '@/components/ui/button';
+import { ScrollAreaPrimitive, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
 export function Thread() {
@@ -46,21 +47,27 @@ export function Thread() {
         ['--composer-padding' as string]: '10px',
       }}
     >
-      <ThreadPrimitive.Viewport
-        turnAnchor='top'
-        className='aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth px-4 pt-4'
-      >
-        <AuiIf condition={(s) => s.thread.isEmpty}>
-          <ThreadWelcome />
-        </AuiIf>
+      <ScrollAreaPrimitive.Root className='aui-thread-viewport relative min-h-0 flex-1'>
+        <ThreadPrimitive.Viewport asChild turnAnchor='top'>
+          <ScrollAreaPrimitive.Viewport
+            data-slot='scroll-area-viewport'
+            className='flex h-full flex-col scroll-smooth px-4 pt-4 outline-none'
+          >
+            <AuiIf condition={(s) => s.thread.isEmpty}>
+              <ThreadWelcome />
+            </AuiIf>
 
-        <ThreadPrimitive.Messages>{() => <ThreadMessage />}</ThreadPrimitive.Messages>
+            <ThreadPrimitive.Messages>{() => <ThreadMessage />}</ThreadPrimitive.Messages>
 
-        <ThreadPrimitive.ViewportFooter className='aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col gap-4 overflow-visible rounded-t-(--composer-radius) bg-background pb-4 md:pb-6'>
-          <ThreadScrollToBottom />
-          <Composer />
-        </ThreadPrimitive.ViewportFooter>
-      </ThreadPrimitive.Viewport>
+            <ThreadPrimitive.ViewportFooter className='aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col gap-4 overflow-visible rounded-t-(--composer-radius) bg-background pb-4 md:pb-6'>
+              <ThreadScrollToBottom />
+              <Composer />
+            </ThreadPrimitive.ViewportFooter>
+          </ScrollAreaPrimitive.Viewport>
+        </ThreadPrimitive.Viewport>
+        <ScrollBar orientation='vertical' />
+        <ScrollAreaPrimitive.Corner data-slot='scroll-area-corner' />
+      </ScrollAreaPrimitive.Root>
     </ThreadPrimitive.Root>
   );
 }

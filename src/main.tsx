@@ -13,6 +13,7 @@ const router = createRouter({
 });
 
 declare module '@tanstack/react-router' {
+  // oxlint-disable-next-line typescript/consistent-type-definitions -- declaration merging requires interface
   interface Register {
     router: typeof router;
   }
