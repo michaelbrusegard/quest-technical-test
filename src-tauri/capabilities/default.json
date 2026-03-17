@@ -12,6 +12,7 @@
     "core:window:allow-set-fullscreen",
     "core:window:allow-start-dragging",
     "opener:default",
+    "stronghold:default",
     {
       "identifier": "http:default",
       "allow": [

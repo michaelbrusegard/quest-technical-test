@@ -1,6 +1,7 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useCallback, useEffect, useState } from 'react';
 
+import { SettingsDialog } from '@/components/SettingsDialog';
 import { cn } from '@/lib/utils';
 
 const FULLSCREEN_UPDATE_DELAY = 100;
@@ -210,15 +211,18 @@ export function Header() {
           !isFullscreen && 'rounded-t-2xl',
         )}
       >
-        <div data-tauri-drag-region className='absolute inset-y-0 left-14 right-0' />
+        <div data-tauri-drag-region className='absolute inset-y-0 left-24 right-0' />
 
-        <WindowControls
-          isFocused={isFocused}
-          isFullscreen={isFullscreen}
-          onClose={handleClose}
-          onMinimize={handleMinimize}
-          onFullscreen={handleFullscreen}
-        />
+        <div className='flex items-center gap-4 relative z-10'>
+          <WindowControls
+            isFocused={isFocused}
+            isFullscreen={isFullscreen}
+            onClose={handleClose}
+            onMinimize={handleMinimize}
+            onFullscreen={handleFullscreen}
+          />
+          <SettingsDialog />
+        </div>
 
         <span className='pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 text-sm font-medium text-foreground font-heading'>
           Quest
