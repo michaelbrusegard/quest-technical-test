@@ -1,0 +1,8 @@
+cognitive-complexity-threshold = 100
+type-complexity-threshold = 1000
+too-many-arguments-threshold = 15
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+check-private-items = false
+enum-variant-name-threshold = 5

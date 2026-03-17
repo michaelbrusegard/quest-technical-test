@@ -1,0 +1,5 @@
+[build]
+# Limit parallel rustc jobs to avoid EAGAIN (os error 35) on macOS.
+# The default (num_cpus) spawns too many processes simultaneously on 14-core
+# machines, exhausting OS process slots during a cold release build.
+jobs = 8

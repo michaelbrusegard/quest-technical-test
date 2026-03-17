@@ -1,0 +1,10 @@
+# misc
+.DS_Store
+.direnv
+
+# dependencies
+/node_modules
+
+# build
+/dist
+*.tsbuildinfo
