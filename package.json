@@ -33,6 +33,7 @@
     "@hugeicons/core-free-icons": "4.0.0",
     "@hugeicons/react": "1.1.6",
     "@tailwindcss/vite": "4.2.1",
+    "@tanstack/react-hotkeys": "^0.4.1",
     "@tanstack/react-router": "1.167.4",
     "@tanstack/router-plugin": "1.166.10",
     "@tauri-apps/api": "2.10.1",

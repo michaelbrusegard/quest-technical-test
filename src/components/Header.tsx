@@ -30,7 +30,7 @@ function WindowButton({
       onClick={onClick}
       className={cn(
         'relative flex h-3 w-3 cursor-pointer items-center justify-center rounded-full transition-colors outline-none',
-        isFocused ? focusedColor : 'bg-border group-hover:' + hoverColor,
+        isFocused ? focusedColor : 'group-hover: bg-border' + hoverColor,
       )}
       aria-label={ariaLabel}
     >
@@ -201,13 +201,13 @@ export function Header() {
   return (
     <header
       className={cn(
-        'border-border bg-background fixed z-100 h-8 w-full border-b transition-opacity select-none',
+        'fixed z-100 h-8 w-full border-b border-border bg-background transition-opacity select-none',
         isFullscreen ? 'opacity-0 hover:opacity-100' : 'rounded-t-lg opacity-100',
       )}
     >
       <div
         className={cn(
-          'bg-muted/30 relative flex size-full items-center justify-between px-3',
+          'relative flex size-full items-center justify-between bg-muted/30 px-3',
           !isFullscreen && 'rounded-t-lg',
         )}
       >
@@ -224,7 +224,7 @@ export function Header() {
           <SettingsDialog />
         </div>
 
-        <span className='text-foreground font-heading pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 text-sm font-medium'>
+        <span className='pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 font-heading text-sm font-medium text-foreground'>
           Quest
         </span>
 
