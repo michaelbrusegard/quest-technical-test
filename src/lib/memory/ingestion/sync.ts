@@ -21,6 +21,7 @@ import { getMemorySettings } from '@/lib/memory/domain/settings';
 import { generateSessionInsight } from '@/lib/memory/enrichment/insight-generation';
 import { normalizeVisit } from '@/lib/memory/ingestion/canonicalize';
 import { sessionizeVisits } from '@/lib/memory/ingestion/sessionize';
+import { rebuildMemorySearchIndex } from '@/lib/memory/search/indexing';
 
 type SyncDependencies = {
   db?: MemoryDatabase;
@@ -96,6 +97,8 @@ export async function syncMemory(dependencies: SyncDependencies = {}): Promise<S
       }
     }
   }
+
+  await rebuildMemorySearchIndex(db);
 
   return {
     overview: await loadMemoryOverview(sources, db),
