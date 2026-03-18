@@ -65,5 +65,6 @@ Extra features
 - [] Add a custom UI for the tool calls
 - [] Add settings for excluding browsers or browser profiles
 - [] Add persistance
-- [] Add a sidebar with multiple chats (like ChatGPT etc)
 - [] Add a warning when starting the app for the first time that it will not be kind to your privacy
+- [] Add a sidebar with multiple chats (like ChatGPT etc)
+  - [] Alternatively keep single chat but store memory of conversations so the agent can optionally enrich context again. Then at startup you can choose to continue a conversation or something?
