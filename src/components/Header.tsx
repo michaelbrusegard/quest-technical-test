@@ -202,13 +202,13 @@ export function Header() {
     <header
       className={cn(
         'border-border bg-background fixed z-100 h-8 w-full border-b transition-opacity select-none',
-        isFullscreen ? 'opacity-0 hover:opacity-100' : 'rounded-t-2xl opacity-100',
+        isFullscreen ? 'opacity-0 hover:opacity-100' : 'rounded-t-lg opacity-100',
       )}
     >
       <div
         className={cn(
           'bg-muted/30 relative flex size-full items-center justify-between px-3',
-          !isFullscreen && 'rounded-t-2xl',
+          !isFullscreen && 'rounded-t-lg',
         )}
       >
         <div data-tauri-drag-region className='absolute inset-y-0 right-0 left-24' />
