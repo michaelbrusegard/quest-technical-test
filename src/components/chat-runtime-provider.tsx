@@ -11,21 +11,30 @@ import {
   useState,
 } from 'react';
 
-import {
-  createEmptyBrowserHistoryState,
-  createHistoryContext,
-  loadBrowserHistoryState,
-  syncBrowserHistory,
-  type BrowserHistoryState,
-} from '@/lib/browser-history';
-import { createChatModelAdapterWithContext } from '@/lib/chat-model-adapter';
+import type { MemoryOverview } from '@/lib/memory/domain/types';
 
-const API_KEY = (import.meta.env['VITE_CEREBRAS_API_KEY'] as string) ?? '';
+import { useApiKeys } from '@/hooks/use-api-keys';
+import { type BrowserSource } from '@/lib/browser-history';
+import { createChatModelAdapterWithContext } from '@/lib/chat-model-adapter';
+import { createMemoryContext } from '@/lib/memory/agent/context';
+import { type MemoryEnrichmentStatus, syncMemory } from '@/lib/memory/ingestion/sync';
+
+function getRuntimeResetKey(isLoading: boolean, anthropicApiKey: string): string {
+  let hash = 0;
+
+  for (const char of anthropicApiKey) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+
+  return `${isLoading ? 'loading' : 'ready'}:${anthropicApiKey.length}:${hash}`;
+}
 
 type BrowserHistoryRuntimeContextValue = {
-  historyState: BrowserHistoryState;
+  memoryOverview: MemoryOverview;
   isHistorySyncing: boolean;
   historySyncError: string | null;
+  enrichmentStatus: MemoryEnrichmentStatus;
+  enrichmentError: string | null;
   refreshHistory: () => Promise<void>;
 };
 
@@ -36,29 +45,38 @@ export function ChatRuntimeProvider({
 }: Readonly<{
   children: ReactNode;
 }>): React.ReactElement {
-  const [historyState, setHistoryState] = useState<BrowserHistoryState>(() =>
-    typeof window === 'undefined' ? createEmptyBrowserHistoryState() : loadBrowserHistoryState(),
-  );
-  const [historySyncError, setHistorySyncError] = useState<string | null>(null);
-  const [isHistorySyncing, setIsHistorySyncing] = useState(false);
-  const historyContextRef = useRef(createHistoryContext(historyState));
+  const { keys, isLoading } = useApiKeys();
 
-  const adapter = useMemo(
-    () =>
-      createChatModelAdapterWithContext(API_KEY, () => {
-        return historyContextRef.current;
-      }),
-    [],
+  const [memoryOverview, setMemoryOverview] = useState<MemoryOverview>({
+    sources: [] satisfies BrowserSource[],
+    visitCount: 0,
+    sessionCount: 0,
+    lastSyncedAtMs: null,
+    lastEnrichedAtMs: null,
+    recentThemes: [],
+  });
+  const [historySyncError, setHistorySyncError] = useState<string | null>(null);
+  const [enrichmentStatus, setEnrichmentStatus] = useState<MemoryEnrichmentStatus>('idle');
+  const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
+  const [isHistorySyncing, setIsHistorySyncing] = useState(false);
+  const historyContextRef = useRef(createMemoryContext(memoryOverview));
+
+  const runtimeResetKey = useMemo(
+    () => getRuntimeResetKey(isLoading, keys.anthropic),
+    [isLoading, keys.anthropic],
   );
-  const runtime = useLocalRuntime(adapter);
   const refreshHistory = useCallback(async () => {
     setIsHistorySyncing(true);
     setHistorySyncError(null);
 
     try {
-      const nextState = await syncBrowserHistory(loadBrowserHistoryState());
-      historyContextRef.current = createHistoryContext(nextState);
-      setHistoryState(nextState);
+      const result = await syncMemory({
+        getCerebrasApiKey: async () => keys.cerebras,
+      });
+      historyContextRef.current = createMemoryContext(result.overview);
+      setMemoryOverview(result.overview);
+      setEnrichmentStatus(result.enrichmentStatus);
+      setEnrichmentError(result.enrichmentError);
     } catch (error) {
       setHistorySyncError(
         error instanceof Error ? error.message : 'Unable to sync browser history',
@@ -66,11 +84,11 @@ export function ChatRuntimeProvider({
     } finally {
       setIsHistorySyncing(false);
     }
-  }, []);
+  }, [keys.cerebras]);
 
   useEffect(() => {
-    historyContextRef.current = createHistoryContext(historyState);
-  }, [historyState]);
+    historyContextRef.current = createMemoryContext(memoryOverview);
+  }, [memoryOverview]);
 
   useEffect(() => {
     void refreshHistory();
@@ -78,19 +96,53 @@ export function ChatRuntimeProvider({
 
   const contextValue = useMemo<BrowserHistoryRuntimeContextValue>(
     () => ({
-      historyState,
+      memoryOverview,
       isHistorySyncing,
       historySyncError,
+      enrichmentStatus,
+      enrichmentError,
       refreshHistory,
     }),
-    [historyState, historySyncError, isHistorySyncing, refreshHistory],
+    [
+      memoryOverview,
+      historySyncError,
+      enrichmentError,
+      enrichmentStatus,
+      isHistorySyncing,
+      refreshHistory,
+    ],
   );
 
   return (
     <BrowserHistoryRuntimeContext.Provider value={contextValue}>
-      <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>
+      <LocalChatAssistantRuntime
+        key={runtimeResetKey}
+        anthropicApiKey={keys.anthropic}
+        getMemoryContext={() => historyContextRef.current}
+      >
+        {children}
+      </LocalChatAssistantRuntime>
     </BrowserHistoryRuntimeContext.Provider>
   );
+}
+
+function LocalChatAssistantRuntime({
+  anthropicApiKey,
+  getMemoryContext,
+  children,
+}: Readonly<{
+  anthropicApiKey: string;
+  getMemoryContext: () => string;
+  children: ReactNode;
+}>): React.ReactElement {
+  const adapter = useMemo(() => {
+    return createChatModelAdapterWithContext(() => {
+      return getMemoryContext();
+    }, anthropicApiKey);
+  }, [anthropicApiKey, getMemoryContext]);
+  const runtime = useLocalRuntime(adapter, { maxSteps: 5 });
+
+  return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
 }
 
 export function useBrowserHistorySync(): BrowserHistoryRuntimeContextValue {

@@ -103,10 +103,10 @@ function ThreadWelcome() {
     <div className='aui-thread-welcome-root mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col'>
       <div className='aui-thread-welcome-center flex w-full grow flex-col items-center justify-center'>
         <div className='aui-thread-welcome-message flex size-full flex-col justify-center px-4'>
-          <h1 className='aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200'>
+          <h1 className='aui-thread-welcome-message-inner animate-in text-2xl font-semibold duration-200 fill-mode-both fade-in slide-in-from-bottom-1'>
             Hello there!
           </h1>
-          <p className='aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xl delay-75 duration-200'>
+          <p className='aui-thread-welcome-message-inner animate-in text-xl text-muted-foreground delay-75 duration-200 fill-mode-both fade-in slide-in-from-bottom-1'>
             How can I help you today?
           </p>
           <BrowserHistoryStatus />
@@ -118,25 +118,35 @@ function ThreadWelcome() {
 }
 
 function BrowserHistoryStatus() {
-  const { historyState, historySyncError, isHistorySyncing } = useBrowserHistorySync();
-  const sourceCount = historyState.sources.length;
+  const { memoryOverview, historySyncError, enrichmentStatus, enrichmentError, isHistorySyncing } =
+    useBrowserHistorySync();
+  const sourceCount = memoryOverview.sources.length;
+  const connectedSummary = `Connected to ${sourceCount} browser profile${sourceCount === 1 ? '' : 's'} with ${memoryOverview.visitCount} visits stored across ${memoryOverview.sessionCount} sessions.`;
 
-  return (
-    <p className='mt-3 text-muted-foreground text-sm'>
-      {historySyncError
-        ? `Browser history sync failed: ${historySyncError}`
-        : isHistorySyncing
-          ? 'Syncing your local browser history...'
-          : sourceCount > 0
-            ? `Connected to ${sourceCount} browser profile${sourceCount === 1 ? '' : 's'} with ${historyState.records.length} imported visits.`
-            : 'No supported browser profiles detected yet.'}
-    </p>
-  );
+  let statusText = 'No supported browser profiles detected yet.';
+
+  if (historySyncError) {
+    statusText = `Browser history sync failed: ${historySyncError}`;
+  } else if (isHistorySyncing) {
+    statusText = 'Syncing your local browser history...';
+  } else if (sourceCount > 0) {
+    statusText = connectedSummary;
+
+    if (enrichmentStatus === 'missing-api-key') {
+      statusText = `${connectedSummary} Add a Cerebras API key in Settings to generate session insights.`;
+    }
+
+    if (enrichmentStatus === 'failed') {
+      statusText = `${connectedSummary} Session insights could not be refreshed${enrichmentError ? `: ${enrichmentError}` : '.'}`;
+    }
+  }
+
+  return <p className='mt-3 text-sm text-muted-foreground'>{statusText}</p>;
 }
 
 function ThreadSuggestions() {
   return (
-    <div className='aui-thread-welcome-suggestions grid w-full @md:grid-cols-2 gap-2 pb-4'>
+    <div className='aui-thread-welcome-suggestions grid w-full gap-2 pb-4 @md:grid-cols-2'>
       <ThreadPrimitive.Suggestions>{() => <ThreadSuggestionItem />}</ThreadPrimitive.Suggestions>
     </div>
   );
@@ -144,11 +154,11 @@ function ThreadSuggestions() {
 
 function ThreadSuggestionItem() {
   return (
-    <div className='aui-thread-welcome-suggestion-display fade-in slide-in-from-bottom-2 @md:nth-[n+3]:block nth-[n+3]:hidden animate-in fill-mode-both duration-200'>
+    <div className='aui-thread-welcome-suggestion-display animate-in duration-200 fill-mode-both fade-in slide-in-from-bottom-2 nth-[n+3]:hidden @md:nth-[n+3]:block'>
       <SuggestionPrimitive.Trigger asChild send>
         <Button
           variant='ghost'
-          className='aui-thread-welcome-suggestion h-auto w-full @md:flex-col flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted'
+          className='aui-thread-welcome-suggestion h-auto w-full flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted @md:flex-col'
         >
           <SuggestionPrimitive.Title className='aui-thread-welcome-suggestion-text-1 font-medium' />
           <SuggestionPrimitive.Description className='aui-thread-welcome-suggestion-text-2 text-muted-foreground empty:hidden' />
@@ -164,7 +174,7 @@ function Composer() {
       <ComposerPrimitive.AttachmentDropzone asChild>
         <div
           data-slot='composer-shell'
-          className='flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-background p-(--composer-padding) transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50'
+          className='flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-background p-(--composer-padding) transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20 data-[dragging=true]:border-dashed data-[dragging=true]:border-ring data-[dragging=true]:bg-accent/50'
         >
           <ComposerAttachments />
           <ComposerPrimitive.Input
@@ -242,7 +252,7 @@ function BrowserHistoryRefreshButton() {
 function MessageError() {
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className='aui-message-error-root mt-2 rounded-md border border-destructive bg-destructive/10 p-3 text-destructive text-sm dark:bg-destructive/5 dark:text-red-200'>
+      <ErrorPrimitive.Root className='aui-message-error-root mt-2 rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/5 dark:text-red-200'>
         <ErrorPrimitive.Message className='aui-message-error-message line-clamp-2' />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
@@ -252,10 +262,10 @@ function MessageError() {
 function AssistantMessage() {
   return (
     <MessagePrimitive.Root
-      className='aui-assistant-message-root fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-(--thread-max-width) animate-in py-3 duration-150'
+      className='aui-assistant-message-root relative mx-auto w-full max-w-(--thread-max-width) animate-in py-3 duration-150 fade-in slide-in-from-bottom-1'
       data-role='assistant'
     >
-      <div className='aui-assistant-message-content wrap-break-word px-2 text-foreground leading-relaxed'>
+      <div className='aui-assistant-message-content px-2 leading-relaxed wrap-break-word text-foreground'>
         <MessagePrimitive.Parts>
           {({ part }) => {
             if (part.type === 'text') {
@@ -312,7 +322,7 @@ function AssistantActionBar() {
           className='aui-action-bar-more-content z-50 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
         >
           <ActionBarPrimitive.ExportMarkdown asChild>
-            <ActionBarMorePrimitive.Item className='aui-action-bar-more-item flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
+            <ActionBarMorePrimitive.Item className='aui-action-bar-more-item flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
               <ArrowDownTrayIcon className='size-4' />
               Export as Markdown
             </ActionBarMorePrimitive.Item>
@@ -326,13 +336,13 @@ function AssistantActionBar() {
 function UserMessage() {
   return (
     <MessagePrimitive.Root
-      className='aui-user-message-root fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-(--thread-max-width) animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 py-3 duration-150 [&:where(>*)]:col-start-2'
+      className='aui-user-message-root mx-auto grid w-full max-w-(--thread-max-width) animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 py-3 duration-150 fade-in slide-in-from-bottom-1 [&:where(>*)]:col-start-2'
       data-role='user'
     >
       <UserMessageAttachments />
 
       <div className='aui-user-message-content-wrapper relative col-start-2 min-w-0'>
-        <div className='aui-user-message-content wrap-break-word rounded-2xl bg-muted px-4 py-2.5 text-foreground'>
+        <div className='aui-user-message-content rounded-2xl bg-muted px-4 py-2.5 wrap-break-word text-foreground'>
           <MessagePrimitive.Parts />
         </div>
         <div className='aui-user-action-bar-wrapper absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2'>
@@ -366,7 +376,7 @@ function EditComposer() {
     <MessagePrimitive.Root className='aui-edit-composer-wrapper mx-auto flex w-full max-w-(--thread-max-width) flex-col px-2 py-3'>
       <ComposerPrimitive.Root className='aui-edit-composer-root ml-auto flex w-full max-w-[85%] flex-col rounded-2xl bg-muted'>
         <ComposerPrimitive.Input
-          className='aui-edit-composer-input min-h-14 w-full resize-none bg-transparent p-4 text-foreground text-sm outline-none'
+          className='aui-edit-composer-input min-h-14 w-full resize-none bg-transparent p-4 text-sm text-foreground outline-none'
           autoFocus
         />
         <div className='aui-edit-composer-footer mx-3 mb-3 flex items-center gap-2 self-end'>
@@ -389,7 +399,7 @@ function BranchPicker({ className, ...rest }: BranchPickerPrimitive.Root.Props) 
     <BranchPickerPrimitive.Root
       hideWhenSingleBranch
       className={cn(
-        'aui-branch-picker-root mr-2 -ml-2 inline-flex items-center text-muted-foreground text-xs',
+        'aui-branch-picker-root mr-2 -ml-2 inline-flex items-center text-xs text-muted-foreground',
         className,
       )}
       {...rest}
