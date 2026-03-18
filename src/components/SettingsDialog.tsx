@@ -1,6 +1,7 @@
 import { Cog8ToothIcon, KeyIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { formatForDisplay, useHotkey } from '@tanstack/react-hotkeys';
 import { getVersion } from '@tauri-apps/api/app';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -9,8 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useApiKeys } from '@/hooks/use-api-keys';
 import { useMemorySettings } from '@/hooks/use-memory-settings';
+
+const SETTINGS_HOTKEY = 'Mod+,';
+const TOOLTIP_SUPPRESS_MS = 150;
 
 type SettingsDialogProps = {
   open?: boolean;
@@ -21,6 +26,35 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { keys, isLoading, updateKey } = useApiKeys();
   const { settings, isLoading: isLoadingMemorySettings, updateSettings } = useMemorySettings();
   const [appVersion, setAppVersion] = useState<string>('');
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const suppressTooltipRef = useRef(false);
+
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+
+  function handleOpenChange(value: boolean) {
+    if (!isControlled) {
+      setInternalOpen(value);
+    }
+    if (!value) {
+      suppressTooltipRef.current = true;
+      setTooltipOpen(false);
+      setTimeout(() => {
+        suppressTooltipRef.current = false;
+      }, TOOLTIP_SUPPRESS_MS);
+    }
+    onOpenChange?.(value);
+  }
+
+  function handleTooltipOpenChange(value: boolean) {
+    if (suppressTooltipRef.current) {
+      return;
+    }
+    setTooltipOpen(value);
+  }
+
+  useHotkey(SETTINGS_HOTKEY, () => handleOpenChange(!isOpen), { preventDefault: true });
 
   useEffect(() => {
     getVersion()
@@ -29,13 +63,27 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   }, []);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger
-        className='relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition-colors outline-none hover:bg-muted/50'
-        aria-label='Settings'
-      >
-        <Cog8ToothIcon className='size-4 text-muted-foreground transition-colors hover:text-foreground' />
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <Tooltip open={tooltipOpen} onOpenChange={handleTooltipOpenChange}>
+        <TooltipTrigger
+          render={
+            <DialogTrigger
+              className='group relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition-colors outline-none hover:bg-muted/50 focus-visible:bg-muted/50'
+              aria-label='Settings'
+            />
+          }
+        >
+          <Cog8ToothIcon className='size-4 text-muted-foreground transition-colors group-hover:text-foreground group-focus-visible:text-foreground' />
+        </TooltipTrigger>
+        <TooltipContent side='bottom'>
+          <span className='flex items-center gap-1.5'>
+            Settings
+            <kbd className='rounded border border-border/50 bg-muted px-1 py-0.5 font-mono text-[10px] leading-none text-muted-foreground'>
+              {formatForDisplay(SETTINGS_HOTKEY)}
+            </kbd>
+          </span>
+        </TooltipContent>
+      </Tooltip>
 
       <DialogContent className='flex h-full max-h-[100dvh] overflow-hidden p-0 sm:h-[600px] sm:max-h-[85vh] sm:max-w-4xl'>
         <Tabs
