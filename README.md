@@ -57,6 +57,7 @@ MVP:
 
 Memory layer improvements:
 - [x] Use a fast model from Cerebras to enrich the memory by soritng into sessions
+- [] Add vector database for memory search
 
 Here I noticed I could use the agent inside of the app itself to help improve the memory, by asking it how it felt the tool calls worked and what it would actually expect
 
