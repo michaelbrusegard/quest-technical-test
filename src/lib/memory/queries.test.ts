@@ -77,4 +77,58 @@ describe('memory queries', () => {
     expect(detailsRes.session?.id).toBe('session:1');
     expect(detailsRes.insight?.themes).toEqual(['react']);
   });
+
+  it('finds concept matches through indexed insights and falls back for broad queries', async () => {
+    const now = Date.now();
+    const db = await createTestMemoryDatabase();
+    await saveMemorySettings({ autoEnrich: false }, db);
+    await syncSessions(
+      [
+        createSession({
+          id: 'session:nixos',
+          startedAtMs: now - 2 * 24 * 60 * 60 * 1000,
+          title: 'Flake experiments',
+          primaryDomain: 'nixos.wiki',
+          evidence: {
+            topDomains: [{ domain: 'nixos.wiki', count: 2 }],
+            titles: ['Flake experiments'],
+            canonicalUrls: ['https://nixos.wiki/wiki/flakes'],
+          },
+        }),
+        createSession({
+          id: 'session:video',
+          startedAtMs: now - 30 * 60 * 1000,
+          title: 'Watched engineering talk',
+          primaryDomain: 'youtube.com',
+          evidence: {
+            topDomains: [{ domain: 'youtube.com', count: 2 }],
+            titles: ['Watched engineering talk'],
+            canonicalUrls: ['https://www.youtube.com/watch?v=123'],
+          },
+        }),
+      ],
+      db,
+    );
+    await saveSessionInsight(
+      {
+        sessionId: 'session:nixos',
+        summary: 'Configured NixOS using flakes and home-manager.',
+        themes: ['nixos', 'configuration'],
+        behaviorSignals: ['deep configuration work'],
+        goalHypotheses: ['Finish the NixOS setup'],
+        confidence: 0.75,
+        model: 'heuristic-v1',
+        updatedAtMs: now,
+      },
+      db,
+    );
+
+    const conceptRes = await searchMemory({ query: 'NixOS configuration' }, db);
+    const recentRes = await searchMemory({ query: 'anything I watched recently' }, db);
+    const broadRes = await searchMemory({ query: 'anything' }, db);
+
+    expect(conceptRes.sessions[0]?.id).toBe('session:nixos');
+    expect(recentRes.sessions[0]?.id).toBe('session:video');
+    expect(broadRes.sessions.length).toBeGreaterThan(0);
+  });
 });

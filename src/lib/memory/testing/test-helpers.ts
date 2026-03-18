@@ -1,4 +1,4 @@
-import initSqlJs from 'sql.js/dist/sql-asm.js';
+import { createRequire } from 'node:module';
 
 import type {
   MemoryQueryExecutor,
@@ -14,6 +14,7 @@ import {
 import { bundledMemoryMigrations } from '@/lib/memory/db/migration-files';
 
 const [initialMigration] = bundledMemoryMigrations;
+const require = createRequire(import.meta.url);
 
 if (!initialMigration) {
   throw new Error('Expected at least one bundled Drizzle migration for the memory database');
@@ -22,12 +23,20 @@ if (!initialMigration) {
 const initialMigrationSql = initialMigration.sql;
 const initialMigrationId = initialMigration.id;
 
+type TestDatabase = {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    run: (...params: Array<string | number | boolean | null>) => void;
+    all: (...params: Array<string | number | boolean | null>) => object[];
+  };
+};
+
 export async function createTestMemoryDatabase(options?: {
   seed?: (executor: MemoryQueryExecutor) => Promise<void>;
   skipDefaultSeed?: boolean;
 }): Promise<MemoryDatabase> {
   resetMemoryDatabaseForTests();
-  const executor = await createSqlJsMemoryExecutor();
+  const executor = await createBunSqliteMemoryExecutor();
   if (!options?.skipDefaultSeed) {
     await seedValidSchema(executor);
   }
@@ -37,26 +46,26 @@ export async function createTestMemoryDatabase(options?: {
   return createMemoryDatabase({ executor });
 }
 
-async function createSqlJsMemoryExecutor(): Promise<MemoryQueryExecutor> {
-  const SQL = await initSqlJs();
-  const db = new SQL.Database();
+async function createBunSqliteMemoryExecutor(): Promise<MemoryQueryExecutor> {
+  const sqliteModule = require('node:sqlite') as {
+    DatabaseSync: new (path: string) => TestDatabase;
+  };
+  const db = new sqliteModule.DatabaseSync(':memory:');
 
-  const executor: MemoryQueryExecutor = {
+  return {
     execute: async (request) => executeQuery(db, request),
     batch: async (batch) => {
-      db.run('BEGIN IMMEDIATE TRANSACTION;');
+      db.exec('BEGIN IMMEDIATE TRANSACTION;');
       try {
         const results = batch.map((request) => executeQuery(db, request));
-        db.run('COMMIT;');
+        db.exec('COMMIT;');
         return results;
       } catch (error) {
-        db.run('ROLLBACK;');
+        db.exec('ROLLBACK;');
         throw error;
       }
     },
   };
-
-  return executor;
 }
 
 export async function seedValidSchema(executor: MemoryQueryExecutor): Promise<void> {
@@ -107,33 +116,27 @@ export async function seedIncompleteSchema(executor: MemoryQueryExecutor): Promi
   });
 }
 
-function executeQuery(
-  db: import('sql.js').Database,
-  request: MemoryQueryRequest,
-): MemoryQueryResult {
+function executeQuery(db: TestDatabase, request: MemoryQueryRequest): MemoryQueryResult {
+  const params = request.params as Array<string | number | boolean | null>;
+
   if (request.method === 'run') {
     if (request.params.length === 0) {
       db.exec(request.sql);
     } else {
-      db.run(request.sql, request.params as import('sql.js').BindParams);
+      db.prepare(request.sql).run(...params);
     }
     return { rows: [] };
   }
 
-  const statement = db.prepare(request.sql, request.params as import('sql.js').BindParams);
-  const rows: unknown[][] = [];
+  const rows = db
+    .prepare(request.sql)
+    .all(...params)
+    .map((row: object) => Object.values(row as Record<string, unknown>));
 
-  try {
-    while (statement.step()) {
-      rows.push(Object.values(statement.getAsObject()));
-
-      if (request.method === 'get') {
-        break;
-      }
-    }
-  } finally {
-    statement.free();
+  if (request.method === 'get') {
+    const firstRow = rows[0];
+    return firstRow ? { rows: [firstRow] } : {};
   }
 
-  return request.method === 'get' && rows.length === 0 ? {} : { rows };
+  return { rows };
 }
