@@ -1,5 +1,16 @@
 # Quest technical test
 
+To use the application either download it from releases (if I have made a release) or clone the repo and follow the guide below.
+
+If you are using Nix and direnv, you can just `cd` into the cloned repository and run `direnv allow`. This will add the necessary dependencies to your shell session.
+If not, just make sure you have a recent version of `bun` and `rust` installed on your system. You will also need `create-dmg` if you want to build the app locally on a Mac.
+
+To run the devserver just run:
+```sh
+bun run tauri dev
+```
+Which should then start the application. The initial sync may take 1-2 minutes because of the `Cerebras` enrichment of the memory.
+
 
 ## Task description
 
@@ -55,3 +66,4 @@ Extra features
 - [] Add settings for excluding browsers or browser profiles
 - [] Add persistance
 - [] Add a sidebar with multiple chats (like ChatGPT etc)
+- [] Add a warning when starting the app for the first time that it will not be kind to your privacy
