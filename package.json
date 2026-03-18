@@ -47,7 +47,6 @@
     "react-dom": "19.1.0",
     "remark-gfm": "4.0.1",
     "shadcn": "4.0.8",
-    "sql.js": "1.14.1",
     "tailwind-merge": "3.5.0",
     "zustand": "5.0.12"
   },
@@ -64,6 +63,7 @@
     "@types/react-dom": "19.1.6",
     "@vitejs/plugin-react": "6.0.1",
     "drizzle-kit": "1.0.0-beta.18-7eb39f0",
+    "sql.js": "1.14.1",
     "jsdom": "29.0.0",
     "lefthook": "2.1.4",
     "oxfmt": "0.40.0",
