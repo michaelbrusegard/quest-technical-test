@@ -37,8 +37,9 @@ tauri-plugin-opener = "2.5.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 tauri-plugin-http = "2.5.7"
-rusqlite = { version = "0.37.0", features = ["bundled"] }
+rusqlite = { version = "0.39.0", features = ["bundled"] }
 tauri-plugin-stronghold = "2.3.1"
+sha2 = "0.10.9"
 
 [profile.dev.package.scrypt]
 opt-level = 3
