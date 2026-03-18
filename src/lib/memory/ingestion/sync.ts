@@ -30,6 +30,8 @@ type SyncDependencies = {
   now?: () => number;
 };
 
+const DEFAULT_SYNC_LIMIT_PER_SOURCE = 1_000;
+
 export type MemoryEnrichmentStatus = 'idle' | 'missing-api-key' | 'complete' | 'failed';
 
 export type SyncMemoryResult = {
@@ -60,7 +62,7 @@ export async function syncMemory(dependencies: SyncDependencies = {}): Promise<S
 
   const response = await fetchHistoryImpl({
     cursors,
-    limitPerSource: 250,
+    limitPerSource: DEFAULT_SYNC_LIMIT_PER_SOURCE,
   });
   const importedAtMs = response.fetchedAtMs ?? now();
   const normalizedVisits = response.records

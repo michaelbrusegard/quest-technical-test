@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { AssistantRuntimeProvider, useLocalRuntime } from '@assistant-ui/react';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import {
   createContext,
   useCallback,
@@ -19,13 +20,17 @@ import { createChatModelAdapterWithContext } from '@/lib/chat-model-adapter';
 import { createMemoryContext } from '@/lib/memory/agent/context';
 import { type MemoryEnrichmentStatus, syncMemory } from '@/lib/memory/ingestion/sync';
 
+const HISTORY_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
+function isTauriRuntime(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
 function getRuntimeResetKey(isLoading: boolean, anthropicApiKey: string): string {
   let hash = 0;
-
   for (const char of anthropicApiKey) {
     hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   }
-
   return `${isLoading ? 'loading' : 'ready'}:${anthropicApiKey.length}:${hash}`;
 }
 
@@ -37,16 +42,13 @@ type BrowserHistoryRuntimeContextValue = {
   enrichmentError: string | null;
   refreshHistory: () => Promise<void>;
 };
-
 const BrowserHistoryRuntimeContext = createContext<BrowserHistoryRuntimeContextValue | null>(null);
-
 export function ChatRuntimeProvider({
   children,
 }: Readonly<{
   children: ReactNode;
 }>): React.ReactElement {
   const { keys, isLoading } = useApiKeys();
-
   const [memoryOverview, setMemoryOverview] = useState<MemoryOverview>({
     sources: [] satisfies BrowserSource[],
     visitCount: 0,
@@ -60,15 +62,18 @@ export function ChatRuntimeProvider({
   const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
   const [isHistorySyncing, setIsHistorySyncing] = useState(false);
   const historyContextRef = useRef(createMemoryContext(memoryOverview));
-
+  const isSyncingRef = useRef(false);
   const runtimeResetKey = useMemo(
     () => getRuntimeResetKey(isLoading, keys.anthropic),
     [isLoading, keys.anthropic],
   );
   const refreshHistory = useCallback(async () => {
+    if (isSyncingRef.current) {
+      return;
+    }
+    isSyncingRef.current = true;
     setIsHistorySyncing(true);
     setHistorySyncError(null);
-
     try {
       const result = await syncMemory({
         getCerebrasApiKey: async () => keys.cerebras,
@@ -82,18 +87,64 @@ export function ChatRuntimeProvider({
         error instanceof Error ? error.message : 'Unable to sync browser history',
       );
     } finally {
+      isSyncingRef.current = false;
       setIsHistorySyncing(false);
     }
   }, [keys.cerebras]);
-
   useEffect(() => {
     historyContextRef.current = createMemoryContext(memoryOverview);
   }, [memoryOverview]);
-
   useEffect(() => {
     void refreshHistory();
   }, [refreshHistory]);
-
+  useEffect(() => {
+    if (!isTauriRuntime()) {
+      return;
+    }
+    let cancelled = false;
+    const win = getCurrentWindow();
+    let intervalId: ReturnType<typeof window.setInterval> | null = null;
+    let unlistenFocusChanged: (() => void) | null = null;
+    const stopPeriodicSync = () => {
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+    const startPeriodicSync = () => {
+      stopPeriodicSync();
+      intervalId = window.setInterval(() => {
+        void refreshHistory();
+      }, HISTORY_SYNC_INTERVAL_MS);
+    };
+    const setupFocusHandling = async () => {
+      const isFocused = await win.isFocused();
+      if (cancelled) {
+        return;
+      }
+      if (isFocused) {
+        startPeriodicSync();
+      }
+      unlistenFocusChanged = await win.onFocusChanged(({ payload }) => {
+        if (payload) {
+          startPeriodicSync();
+          void refreshHistory();
+          return;
+        }
+        stopPeriodicSync();
+      });
+      if (cancelled) {
+        unlistenFocusChanged();
+        stopPeriodicSync();
+      }
+    };
+    void setupFocusHandling();
+    return () => {
+      cancelled = true;
+      stopPeriodicSync();
+      unlistenFocusChanged?.();
+    };
+  }, [refreshHistory]);
   const contextValue = useMemo<BrowserHistoryRuntimeContextValue>(
     () => ({
       memoryOverview,
@@ -112,7 +163,6 @@ export function ChatRuntimeProvider({
       refreshHistory,
     ],
   );
-
   return (
     <BrowserHistoryRuntimeContext.Provider value={contextValue}>
       <LocalChatAssistantRuntime
@@ -125,7 +175,6 @@ export function ChatRuntimeProvider({
     </BrowserHistoryRuntimeContext.Provider>
   );
 }
-
 function LocalChatAssistantRuntime({
   anthropicApiKey,
   getMemoryContext,
@@ -141,10 +190,8 @@ function LocalChatAssistantRuntime({
     }, anthropicApiKey);
   }, [anthropicApiKey, getMemoryContext]);
   const runtime = useLocalRuntime(adapter, { maxSteps: 5 });
-
   return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
 }
-
 export function useBrowserHistorySync(): BrowserHistoryRuntimeContextValue {
   const context = useContext(BrowserHistoryRuntimeContext);
   if (!context) {
