@@ -32,8 +32,6 @@ const STOP_WORDS = new Set([
   'this',
   'to',
   'was',
-  'watch',
-  'watched',
   'what',
   'when',
   'where',

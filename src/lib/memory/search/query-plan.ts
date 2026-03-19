@@ -38,9 +38,7 @@ export function buildMemorySearchPlan(rawQuery: string, now = Date.now()): Memor
     : normalized;
   const lexicalTerms = uniqueStrings(expandQueryTerms(queryWithoutTime));
   const broadQuery = lexicalTerms.every((term) => VAGUE_TERMS.has(term) || term.length <= 2);
-  const hasDomainLikeTerm = lexicalTerms.some(
-    (term) => term.includes('com') || term.includes('org'),
-  );
+  const hasDomainLikeTerm = /[a-z0-9-]+\.(com|org|net|io|dev|app|co)\b/i.test(queryWithoutTime);
   const lexicalWeight = hasDomainLikeTerm || lexicalTerms.length <= 2 ? 1.4 : 1.05;
   const semanticWeight = broadQuery || lexicalTerms.length > 2 ? 1.35 : 0.95;
 

@@ -211,8 +211,11 @@ async function replaceFtsDocuments(
         method: 'run' as const,
       })),
     );
-  } catch {
-    return;
+  } catch (error) {
+    console.warn(
+      '[search] FTS index update failed; lexical search will fall back to search_documents scan.',
+      error,
+    );
   }
 }
 

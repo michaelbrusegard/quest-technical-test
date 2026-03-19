@@ -10,7 +10,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "bun-types", "node"]
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "bun-types"]
   },
   "include": ["src/**/*"],
   "references": [{ "path": "./tsconfig.build.json" }]

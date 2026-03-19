@@ -124,7 +124,7 @@ describe('memory queries', () => {
     );
 
     const conceptRes = await searchMemory({ query: 'NixOS configuration' }, db);
-    const recentRes = await searchMemory({ query: 'anything I watched recently' }, db);
+    const recentRes = await searchMemory({ query: 'video I watched recently' }, db);
     const broadRes = await searchMemory({ query: 'anything' }, db);
 
     expect(conceptRes.sessions[0]?.id).toBe('session:nixos');

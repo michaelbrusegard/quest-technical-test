@@ -37,6 +37,7 @@ export async function searchMemoryHybrid(
   limit = 5,
   db?: MemoryDatabaseSession,
 ): Promise<MemorySearchResult> {
+  const resolvedLimit = Number.isFinite(limit) && limit >= 1 ? Math.floor(limit) : 5;
   const resolvedDb = db ?? (await getMemoryDatabase());
   await ensureMemorySearchIndex(resolvedDb);
 
@@ -52,12 +53,12 @@ export async function searchMemoryHybrid(
     lexicalWeight: plan.lexicalWeight,
     semanticWeight: plan.semanticWeight,
     broadQuery: plan.broadQuery,
-  }).slice(0, limit);
+  }).slice(0, resolvedLimit);
 
   const finalSessionIds =
     rankedSessionIds.length > 0
       ? rankedSessionIds
-      : await loadFallbackSessionIds(limit, plan.timeWindow, resolvedDb);
+      : await loadFallbackSessionIds(resolvedLimit, plan.timeWindow, resolvedDb);
 
   const mappedSessions = await loadRankedSessions(finalSessionIds, resolvedDb);
 
