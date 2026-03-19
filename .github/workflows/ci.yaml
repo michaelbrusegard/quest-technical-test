@@ -28,7 +28,7 @@ jobs:
       # - name: Run formatting check
       #   run: bun run fmt:check
       - name: Run frontend tests
-        run: bun run test --run
+        run: bun --bun run test --run
 
   check-backend:
     runs-on: ubuntu-latest

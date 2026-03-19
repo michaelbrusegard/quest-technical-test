@@ -181,6 +181,19 @@ async function replaceFtsDocuments(
 
   try {
     await executor.execute({
+      sql: `CREATE VIRTUAL TABLE IF NOT EXISTS search_documents_fts USING fts5(
+        document_id UNINDEXED,
+        session_id UNINDEXED,
+        title,
+        primary_domain,
+        search_text,
+        tokenize = 'unicode61 remove_diacritics 1'
+      )`,
+      params: [],
+      method: 'run',
+    });
+
+    await executor.execute({
       sql: 'DELETE FROM search_documents_fts',
       params: [],
       method: 'run',

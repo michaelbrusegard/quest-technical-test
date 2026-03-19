@@ -23,20 +23,12 @@ if (!initialMigration) {
 const initialMigrationSql = initialMigration.sql;
 const initialMigrationId = initialMigration.id;
 
-type TestDatabase = {
-  exec(sql: string): void;
-  prepare(sql: string): {
-    run: (...params: Array<string | number | boolean | null>) => void;
-    all: (...params: Array<string | number | boolean | null>) => object[];
-  };
-};
-
 export async function createTestMemoryDatabase(options?: {
   seed?: (executor: MemoryQueryExecutor) => Promise<void>;
   skipDefaultSeed?: boolean;
 }): Promise<MemoryDatabase> {
   resetMemoryDatabaseForTests();
-  const executor = await createBunSqliteMemoryExecutor();
+  const executor = createNodeSqliteMemoryExecutor();
   if (!options?.skipDefaultSeed) {
     await seedValidSchema(executor);
   }
@@ -46,7 +38,15 @@ export async function createTestMemoryDatabase(options?: {
   return createMemoryDatabase({ executor });
 }
 
-async function createBunSqliteMemoryExecutor(): Promise<MemoryQueryExecutor> {
+type TestDatabase = {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    run: (...params: Array<string | number | boolean | null>) => void;
+    all: (...params: Array<string | number | boolean | null>) => object[];
+  };
+};
+
+function createNodeSqliteMemoryExecutor(): MemoryQueryExecutor {
   const sqliteModule = require('node:sqlite') as {
     DatabaseSync: new (path: string) => TestDatabase;
   };
