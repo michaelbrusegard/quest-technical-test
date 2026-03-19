@@ -15,7 +15,9 @@ import type {
 import { runMemoryMigrations } from '@/lib/memory/db/migrations';
 import { schema } from '@/lib/memory/db/schema';
 
-export type MemoryDatabase = SqliteRemoteDatabase<typeof schema>;
+export type MemoryDatabase = SqliteRemoteDatabase<typeof schema> & {
+  $executor: MemoryQueryExecutor;
+};
 export type MemoryDatabaseSession = Omit<MemoryDatabase, 'batch'>;
 export type DrizzleRemoteQueryResult = { rows: unknown[][] };
 
@@ -38,8 +40,16 @@ export async function createMemoryDatabase({
   const resolvedExecutor = executor ?? createTauriMemoryQueryExecutor();
   await runMemoryMigrations(resolvedExecutor);
 
-  return drizzle(createRemoteCallback(resolvedExecutor), createBatchCallback(resolvedExecutor), {
-    schema,
+  const database = drizzle(
+    createRemoteCallback(resolvedExecutor),
+    createBatchCallback(resolvedExecutor),
+    {
+      schema,
+    },
+  );
+
+  return Object.assign(database, {
+    $executor: resolvedExecutor,
   });
 }
 
@@ -60,6 +70,12 @@ export function createTauriMemoryQueryExecutor(): MemoryQueryExecutor {
       return invoke<MemoryQueryResult[]>('memory_batch', { batch });
     },
   };
+}
+
+export function getMemoryQueryExecutor(
+  db: MemoryDatabase | MemoryDatabaseSession,
+): MemoryQueryExecutor {
+  return db.$executor;
 }
 
 function createRemoteCallback(executor: MemoryQueryExecutor): AsyncRemoteCallback {

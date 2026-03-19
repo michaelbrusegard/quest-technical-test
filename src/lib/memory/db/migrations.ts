@@ -11,6 +11,8 @@ const REQUIRED_TABLES = [
   'session_insights',
 ];
 
+const OPTIONAL_TABLES = ['search_documents', 'search_documents_fts'];
+
 const BOOTSTRAP_SQL = `
   CREATE TABLE IF NOT EXISTS __drizzle_migrations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,6 +95,14 @@ function hasIncompleteSchema(existingTables: Set<string>): boolean {
 
 async function resetMemorySchema(executor: MemoryQueryExecutor): Promise<void> {
   const cleanup = [
+    ...OPTIONAL_TABLES.toReversed().map(
+      (table) =>
+        ({
+          sql: `DROP TABLE IF EXISTS ${table}`,
+          params: [],
+          method: 'run',
+        }) satisfies MemoryQueryRequest,
+    ),
     ...REQUIRED_TABLES.toReversed().map(
       (table) =>
         ({

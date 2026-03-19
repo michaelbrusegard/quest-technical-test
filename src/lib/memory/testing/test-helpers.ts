@@ -1,4 +1,4 @@
-import initSqlJs from 'sql.js/dist/sql-asm.js';
+import Database from 'better-sqlite3';
 
 import type {
   MemoryQueryExecutor,
@@ -27,7 +27,7 @@ export async function createTestMemoryDatabase(options?: {
   skipDefaultSeed?: boolean;
 }): Promise<MemoryDatabase> {
   resetMemoryDatabaseForTests();
-  const executor = await createSqlJsMemoryExecutor();
+  const executor = createSqliteMemoryExecutor();
   if (!options?.skipDefaultSeed) {
     await seedValidSchema(executor);
   }
@@ -37,26 +37,23 @@ export async function createTestMemoryDatabase(options?: {
   return createMemoryDatabase({ executor });
 }
 
-async function createSqlJsMemoryExecutor(): Promise<MemoryQueryExecutor> {
-  const SQL = await initSqlJs();
-  const db = new SQL.Database();
+function createSqliteMemoryExecutor(): MemoryQueryExecutor {
+  const db = new Database(':memory:');
 
-  const executor: MemoryQueryExecutor = {
+  return {
     execute: async (request) => executeQuery(db, request),
     batch: async (batch) => {
-      db.run('BEGIN IMMEDIATE TRANSACTION;');
+      db.exec('BEGIN IMMEDIATE TRANSACTION;');
       try {
         const results = batch.map((request) => executeQuery(db, request));
-        db.run('COMMIT;');
+        db.exec('COMMIT;');
         return results;
       } catch (error) {
-        db.run('ROLLBACK;');
+        db.exec('ROLLBACK;');
         throw error;
       }
     },
   };
-
-  return executor;
 }
 
 export async function seedValidSchema(executor: MemoryQueryExecutor): Promise<void> {
@@ -107,33 +104,25 @@ export async function seedIncompleteSchema(executor: MemoryQueryExecutor): Promi
   });
 }
 
-function executeQuery(
-  db: import('sql.js').Database,
-  request: MemoryQueryRequest,
-): MemoryQueryResult {
+function executeQuery(db: Database.Database, request: MemoryQueryRequest): MemoryQueryResult {
   if (request.method === 'run') {
     if (request.params.length === 0) {
       db.exec(request.sql);
     } else {
-      db.run(request.sql, request.params as import('sql.js').BindParams);
+      db.prepare(request.sql).run(...request.params);
     }
     return { rows: [] };
   }
 
-  const statement = db.prepare(request.sql, request.params as import('sql.js').BindParams);
-  const rows: unknown[][] = [];
+  const rows = db
+    .prepare(request.sql)
+    .raw()
+    .all(...request.params) as unknown[][];
 
-  try {
-    while (statement.step()) {
-      rows.push(Object.values(statement.getAsObject()));
-
-      if (request.method === 'get') {
-        break;
-      }
-    }
-  } finally {
-    statement.free();
+  if (request.method === 'get') {
+    const firstRow = rows[0];
+    return firstRow ? { rows: [firstRow] } : {};
   }
 
-  return request.method === 'get' && rows.length === 0 ? {} : { rows };
+  return { rows };
 }

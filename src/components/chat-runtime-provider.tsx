@@ -103,7 +103,7 @@ export function ChatRuntimeProvider({
     }
     let cancelled = false;
     const win = getCurrentWindow();
-    let intervalId: ReturnType<typeof window.setInterval> | null = null;
+    let intervalId: number | null = null;
     let unlistenFocusChanged: (() => void) | null = null;
     const stopPeriodicSync = () => {
       if (intervalId !== null) {

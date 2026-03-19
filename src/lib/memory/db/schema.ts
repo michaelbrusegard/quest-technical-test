@@ -87,6 +87,31 @@ export const sessionInsights = sqliteTable('session_insights', {
   updatedAtMs: integer('updated_at_ms').notNull(),
 });
 
+export const searchDocuments = sqliteTable(
+  'search_documents',
+  {
+    id: text('id').primaryKey(),
+    sessionId: text('session_id')
+      .notNull()
+      .references(() => sessions.id, { onDelete: 'cascade' }),
+    sourceType: text('source_type').notNull(),
+    title: text('title').notNull(),
+    primaryDomain: text('primary_domain'),
+    searchText: text('search_text').notNull(),
+    embeddingJson: text('embedding_json'),
+    contentHash: text('content_hash').notNull(),
+    embeddingModel: text('embedding_model'),
+    startedAtMs: integer('started_at_ms').notNull(),
+    endedAtMs: integer('ended_at_ms').notNull(),
+    updatedAtMs: integer('updated_at_ms').notNull(),
+  },
+  (table) => [
+    index('idx_search_documents_session_id').on(table.sessionId),
+    index('idx_search_documents_source_type').on(table.sourceType),
+    index('idx_search_documents_started_at_ms').on(table.startedAtMs),
+  ],
+);
+
 export const schema = {
   memoryConfig,
   syncState,
@@ -94,4 +119,5 @@ export const schema = {
   sessions,
   sessionVisits,
   sessionInsights,
+  searchDocuments,
 };
