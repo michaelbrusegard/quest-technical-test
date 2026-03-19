@@ -1,4 +1,4 @@
-import { createRequire } from 'node:module';
+import Database from 'better-sqlite3';
 
 import type {
   MemoryQueryExecutor,
@@ -14,7 +14,6 @@ import {
 import { bundledMemoryMigrations } from '@/lib/memory/db/migration-files';
 
 const [initialMigration] = bundledMemoryMigrations;
-const require = createRequire(import.meta.url);
 
 if (!initialMigration) {
   throw new Error('Expected at least one bundled Drizzle migration for the memory database');
@@ -28,7 +27,7 @@ export async function createTestMemoryDatabase(options?: {
   skipDefaultSeed?: boolean;
 }): Promise<MemoryDatabase> {
   resetMemoryDatabaseForTests();
-  const executor = createNodeSqliteMemoryExecutor();
+  const executor = createSqliteMemoryExecutor();
   if (!options?.skipDefaultSeed) {
     await seedValidSchema(executor);
   }
@@ -38,19 +37,8 @@ export async function createTestMemoryDatabase(options?: {
   return createMemoryDatabase({ executor });
 }
 
-type TestDatabase = {
-  exec(sql: string): void;
-  prepare(sql: string): {
-    run: (...params: Array<string | number | boolean | null>) => void;
-    all: (...params: Array<string | number | boolean | null>) => object[];
-  };
-};
-
-function createNodeSqliteMemoryExecutor(): MemoryQueryExecutor {
-  const sqliteModule = require('node:sqlite') as {
-    DatabaseSync: new (path: string) => TestDatabase;
-  };
-  const db = new sqliteModule.DatabaseSync(':memory:');
+function createSqliteMemoryExecutor(): MemoryQueryExecutor {
+  const db = new Database(':memory:');
 
   return {
     execute: async (request) => executeQuery(db, request),
@@ -116,22 +104,20 @@ export async function seedIncompleteSchema(executor: MemoryQueryExecutor): Promi
   });
 }
 
-function executeQuery(db: TestDatabase, request: MemoryQueryRequest): MemoryQueryResult {
-  const params = request.params as Array<string | number | boolean | null>;
-
+function executeQuery(db: Database.Database, request: MemoryQueryRequest): MemoryQueryResult {
   if (request.method === 'run') {
     if (request.params.length === 0) {
       db.exec(request.sql);
     } else {
-      db.prepare(request.sql).run(...params);
+      db.prepare(request.sql).run(...request.params);
     }
     return { rows: [] };
   }
 
   const rows = db
     .prepare(request.sql)
-    .all(...params)
-    .map((row: object) => Object.values(row as Record<string, unknown>));
+    .raw()
+    .all(...request.params) as unknown[][];
 
   if (request.method === 'get') {
     const firstRow = rows[0];
