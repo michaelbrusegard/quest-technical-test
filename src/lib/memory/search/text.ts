@@ -56,7 +56,7 @@ export function tokenizeText(value: string, options?: { keepStopWords?: boolean 
   }
 
   return normalized
-    .split(/[^a-z0-9.\-/]+/)
+    .split(/[^\p{L}\p{N}.\-/]+/u)
     .flatMap((token) => splitCompositeToken(token))
     .filter((token) => token.length >= 2)
     .filter((token) => options?.keepStopWords || !STOP_WORDS.has(token));
@@ -120,9 +120,7 @@ export function extractUrlTerms(url: string): string[] {
     const pathTokens = parsed.pathname
       .split('/')
       .flatMap((segment) => splitCompositeToken(segment));
-    const queryTokens = [...parsed.searchParams.keys(), ...parsed.searchParams.values()].flatMap(
-      (segment) => splitCompositeToken(segment),
-    );
+    const queryTokens = [...parsed.searchParams.keys()].flatMap((key) => splitCompositeToken(key));
 
     return uniqueStrings([...hostTokens, ...pathTokens, ...queryTokens]);
   } catch {
@@ -137,7 +135,7 @@ export function uniqueStrings(values: string[]): string[] {
 function splitCompositeToken(token: string): string[] {
   return token
     .split(/[.\-/]+/)
-    .flatMap((part) => part.split(/(?<=[a-z])(?=[0-9])|(?<=[0-9])(?=[a-z])/))
+    .flatMap((part) => part.split(/(?<=\p{L})(?=\p{N})|(?<=\p{N})(?=\p{L})/u))
     .map((part) => part.trim())
     .filter(Boolean);
 }

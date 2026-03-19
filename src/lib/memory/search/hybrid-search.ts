@@ -319,11 +319,11 @@ function matchesTimeWindow(
     return true;
   }
 
-  if (timeWindow.strict && startedAtMs < timeWindow.startMs) {
-    return false;
+  if (typeof timeWindow.endMs === 'number') {
+    return startedAtMs >= timeWindow.startMs && startedAtMs <= timeWindow.endMs;
   }
 
-  if (typeof timeWindow.endMs === 'number' && startedAtMs > timeWindow.endMs) {
+  if (timeWindow.strict && startedAtMs < timeWindow.startMs) {
     return false;
   }
 
